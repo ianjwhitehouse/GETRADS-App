@@ -6,7 +6,7 @@ Andorra|AD
 Angola|AO
 Anguilla|AI
 Antarctica|AQ
-Antigua &amp; Barbuda|AG
+Antigua & Barbuda|AG
 Argentina|AR
 Armenia|AM
 Aruba|AW
@@ -49,7 +49,7 @@ Cocos (Keeling) Islands|CC
 Colombia|CO
 Comoros|KM
 Congo|CG
-Cook Iislands|CK
+Cook Islands|CK
 Costa Rica|CR
 Côte D'ivoire (Ivory Coast)|CI
 Croatia|HR
@@ -199,11 +199,11 @@ Spain|ES
 Sri Lanka|LK
 St. Helena|SH
 St. Kitts and Nevis|KN
-St. Pierre &amp; Miquelon|PM
-St. Vincent &amp; the Grenadines|VC
+St. Pierre & Miquelon|PM
+St. Vincent & the Grenadines|VC
 Sudan|SD
 Suriname|SR
-Svalbard &amp; Jan Mayen Islands|SJ
+Svalbard & Jan Mayen Islands|SJ
 Swaziland|SZ
 Sweden|SE
 Switzerland|CH
@@ -235,8 +235,8 @@ Uzbekistan|UZ
 Vanuatu|VU
 Vatican City State (Holy See)|VA
 Venezuela|VE
-Viet Nam|VN
-Wallis &amp; Futuna Islands|WF
+Vietnam|VN
+Wallis & Futuna Islands|WF
 Western Sahara|EH
 Yemen|YE
 Yugoslavia|YU

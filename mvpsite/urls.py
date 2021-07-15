@@ -15,8 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from .views import test
+from .views import *
 
 urlpatterns = [
 	path('test/', test),
+	path('packages/', package_ads),
+	path('couriers/', courier_ads),
 ]
