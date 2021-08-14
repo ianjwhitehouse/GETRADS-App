@@ -5,7 +5,7 @@ from .models import PackageAd, CourierAd, countries
 
 # Create your views here.
 def test(request):
-	return render(request, "mvp/search.html")
+	return render(request, "mvp/form.html")
 
 
 # Courier
