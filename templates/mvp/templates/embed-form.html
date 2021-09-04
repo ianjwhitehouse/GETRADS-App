@@ -1,0 +1,57 @@
+{% extends "mvp/templates/base.html" %}
+{% load myfilters %}
+
+{% block title %}{{ name }}{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>{{ name }}</h6>
+                    </div>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="card-body px-4 pt-0 pb-2">
+                            {% for name, form in forms %}
+                                {{ name }}
+                                {% if form.non_field_errors %}
+                                    {% for error in form.non_field_errors %}
+                                        <div class="alert alert-danger" role="alert">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                                {% for field in form %}
+                                    <div class="row">
+                                        <div class="col-md-8 col-sm-24">
+                                            <div class="form-group">
+                                                {% if field.errors %}
+                                                    {% for error in field.errors %}
+                                                        <div class="alert alert-danger" role="alert">{{ error }}</div>
+                                                    {% endfor %}
+                                                {% endif %}
+                                                <label class="form-control-label">{{ field.label }}
+                                                    {{ field|addclass:"form-control" }}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+                            <div class="row">
+                                <div class="col-md-8 col-sm-12">
+                                    <div class="form-group">
+                                        <button type="submit" class="btn bg-gradient-primary btn-lg w-100"
+                                                id="searcher">
+                                            Submit
+                                        </button>
+                                        <a class="btn bg-gradient-secondary btn-sm" href="">Clear</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

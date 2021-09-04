@@ -34,7 +34,6 @@ class Profile(models.Model):
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, primary_key=True)
 	profile = models.ImageField(verbose_name="Profile Picture: ")
 	name_f = models.CharField(max_length=32, verbose_name="First Name: ")
-	name_m = models.CharField(max_length=1, verbose_name="Middle Initial: ")
 	name_l = models.CharField(max_length=32, verbose_name="Last Name: ")
 	role_choices = [(0, "Sender"), (1, "Courier")]
 	role = models.SmallIntegerField(choices=role_choices, verbose_name="Role: ")
@@ -47,7 +46,7 @@ class Profile(models.Model):
 
 @admin.display(description="Full Name")
 def get_full_name(obj):
-	return "%s %s. %s" % (obj.name_f.upper(), obj.name_m.upper(), obj.name_l.upper())
+	return "%s %s" % (obj.name_f.upper(), obj.name_l.upper())
 
 
 @admin.display(description="Address")
@@ -77,7 +76,7 @@ def get_status(obj):
 
 @admin.display(description="Full Name")
 def get_kyc_full_name(obj):
-	return "%s %s. %s" % (obj.user.name_f.upper(), obj.user.name_m.upper(), obj.user.name_l.upper())
+	return "%s %s" % (obj.user.name_f.upper(), obj.user.name_l.upper())
 
 
 class KYCAdmin(admin.ModelAdmin):
@@ -108,7 +107,7 @@ class CourierAd(models.Model):
 
 @admin.display(description="Courier Full Name")
 def get_courier_full_name(obj):
-	return "%s %s. %s" % (obj.courier.name_f.upper(), obj.courier.name_m.upper(), obj.courier.name_l.upper())
+	return "%s %s" % (obj.courier.name_f.upper(), obj.courier.name_l.upper())
 
 
 class CourierAdmin(admin.ModelAdmin):
@@ -132,13 +131,12 @@ class PackageAd(models.Model):
 	transport_modes = [(0, "In Person"), (1, "Delivery Service")]
 
 	sender_mode = models.SmallIntegerField(choices=transport_modes, verbose_name="Pickup mode: ")
-	sender_address = models.ForeignKey(Address, related_name="%(class)s_send_a", on_delete=models.PROTECT,
-									   verbose_name="Pickup address OR delivery service address: ")
+	sender_address = models.ForeignKey(Address, related_name="%(class)s_send_a", on_delete=models.PROTECT,)
 	sender = models.ForeignKey(Profile, related_name="%(class)s_sender", on_delete=models.PROTECT)
 
 	receiver_mode = models.SmallIntegerField(choices=transport_modes, verbose_name="Drop-off mode: ")
 	receiver_number = models.CharField(max_length=32, validators=[phone_regex], verbose_name="Receiver's phone number: ")
-	receiver_address = models.ForeignKey(Address, related_name="%(class)s_receive_a", on_delete=models.PROTECT, verbose_name="Receiver's address NOT delivery service address: ")
+	receiver_address = models.ForeignKey(Address, related_name="%(class)s_receive_a", on_delete=models.PROTECT)
 
 	status_code = [(0, "Still accepting offers"), (1, "A deal is in progress"), (2, "A deal is completed"),
 				   (3, "The package has been dropped off"), (4, "The package is with the courier"),
@@ -149,7 +147,7 @@ class PackageAd(models.Model):
 
 @admin.display(description="Sender Full Name")
 def get_package_full_name(obj):
-	return "%s %s. %s" % (obj.sender.name_f.upper(), obj.sender.name_m.upper(), obj.sender.name_l.upper())
+	return "%s %s" % (obj.sender.name_f.upper(), obj.sender.name_l.upper())
 
 
 class PackageAdmin(admin.ModelAdmin):
@@ -168,7 +166,7 @@ class Message(models.Model):
 
 @admin.display(description="Receiver Full Name")
 def get_message_receiver_full_name(obj):
-	return "%s %s. %s" % (obj.receiver.name_f.upper(), obj.receiver.name_m.upper(), obj.receiver.name_l.upper())
+	return "%s %s" % (obj.receiver.name_f.upper(), obj.receiver.name_l.upper())
 
 
 class MessageAdmin(admin.ModelAdmin):

@@ -18,7 +18,13 @@ from django.urls import include, path
 from .views import *
 
 urlpatterns = [
-	path('test/', test),
+	path('', home),
+	path('test/', courier_create),
 	path('packages/', package_ads),
+	path('packages/new', package_create),
 	path('couriers/', courier_ads),
+	path('couriers/new', courier_create),
+	path('user/login/', log_in),
+	path('user/new/', create_user),
+	path('user/edit/', create_user),
 ]

@@ -1,0 +1,126 @@
+{% extends "mvp/templates/base.html" %}
+{% load myfilters %}
+
+{% block title %}Courier Advertisements{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>Set your Filters</h6>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="card-body px-4 pt-0 pb-2">
+                            <div class="row">
+                                <div class="col-md-4 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="depart_country"
+                                               class="form-control-label">{{ filter.depart_country.label }}</label>
+                                        {{ filter.depart_country|addclass:"form-control" }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="depart_country"
+                                               class="form-control-label">{{ filter.receive_country.label }}</label>
+                                        {{ filter.receive_country|addclass:"form-control" }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="depart_country"
+                                               class="form-control-label">{{ filter.weight.label }}</label>
+                                        {{ filter.weight|addclass:"form-control" }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="depart_country"
+                                               class="form-control-label">{{ filter.price_max.label }}</label>
+                                        {{ filter.price_max|addclass:"form-control" }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8 col-sm-12">
+                                    <div class="form-group">
+                                        <button type="submit" class="btn bg-gradient-primary btn-lg w-100"
+                                                id="searcher">
+                                            Filter
+                                        </button>
+                                        <a class="btn bg-gradient-secondary btn-sm" href="">Clear</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>Courier Ads</h6>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-0">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Maximum Weight
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        From
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        To
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Minimum Price
+                                    </th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for ad in ads %}
+                                    <tr>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.package_weight }}</p>
+                                            <p class="text-xs text-secondary mb-0">Pounds</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.dep_airport }}, {{ ad.dep_country }}</p>
+                                            <p class="text-xs text-secondary mb-0">{{ ad.dep_date }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.dest_airport }}, {{ ad.dest_country }}</p>
+                                            <p class="text-xs text-secondary mb-0">{{ ad.dest_date }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">${{ ad.package_price_min }}</p>
+                                            <p class="text-xs text-secondary mb-0">USD</p>
+                                        </td>
+                                        <td>
+                                            <a class="text-xs font-weight-bold mb-0"
+                                               href="/package/{{ ad.id }}">Open</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
