@@ -1,0 +1,179 @@
+{% extends "mvp/templates/base.html" %}
+{% load myfilters %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>Posted Ads</h6>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-0">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Package Type
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Package Weight
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Package Dimensions
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        From
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        To
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Maximum Price
+                                    </th>
+                                    <th class="text-center"><a class="btn bg-gradient-primary btn-sm" href="/mvp/packages/new/">Create Ad</a></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for ad in ads %}
+                                    <tr>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.get_package_type_display }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.package_weight }}</p>
+                                            <p class="text-xs text-secondary mb-0">Pounds</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.package_length }}x{{ ad.package_width }}x{{ ad.package_depth }}</p>
+                                            <p class="text-xs text-secondary mb-0">Inches</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.sender_address.address }}</p>
+                                            <p class="text-xs text-secondary mb-0">{{ ad.sender_address.get_country_display }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.receiver_address.address }}</p>
+                                            <p class="text-xs text-secondary mb-0">{{ ad.receiver_address.get_country_display }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">${{ ad.package_price_max }}</p>
+                                            <p class="text-xs text-secondary mb-0">USD</p>
+                                        </td>
+                                        <td class="text-center">
+                                            <a class="btn bg-gradient-primary btn-sm" href="/mvp/packages/{{ ad.id }}">Open</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>In Progress Deals</h6>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-0">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Courier
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Courier's Status
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Courier Ad
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Your Status
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Package Ad
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for ad in deals_current %}
+                                    <tr>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.courier.courier.f_name }} {{ ad.courier.courier.l_name }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.courier.get_status_display }}</p>
+                                        </td>
+                                        <td>
+                                            <a class="btn bg-gradient-primary btn-sm" href="/mvp/couriers/{{ ad.courier.id }}">View Courier Ad</a>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.get_status_display }}</p>
+                                        </td>
+                                        <td>
+                                            <a class="btn bg-gradient-primary btn-sm" href="/mvp/packages/{{ ad.id }}">View Package Ad</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>Completed Deals</h6>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-0">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Courier
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Courier Ad
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Your Ad
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Rate
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for d in deals_completed %}
+                                    <tr>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ ad.courier.courier.f_name }} {{ ad.courier.courier.l_name }}</p>
+                                        </td>
+                                        <td>
+                                            <a class="btn bg-gradient-primary btn-sm" href="/mvp/couriers/{{ ad.courier.id }}">View Courier Ad</a>
+                                        </td>
+                                        <td>
+                                            <a class="btn bg-gradient-primary btn-sm" href="/mvp/packages/{{ ad.id }}">View Package Ad</a>
+                                        </td>
+                                        <td>
+                                            {% if ad.status != 8 %}
+                                                <a class="btn bg-gradient-primary btn-sm" href="/user/rate/{{ ad.courier.courier.id }}/1/{{ ad.courier.id }}">Rate</a>
+                                            {% else %}
+                                                <p class="text-xs font-weight-bold mb-0">Already Rated</p>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

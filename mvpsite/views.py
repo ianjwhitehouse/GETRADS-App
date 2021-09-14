@@ -4,7 +4,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.forms import ModelForm
 from django.shortcuts import render, redirect
-from .models import PackageAd, CourierAd, countries, Profile, KYCAuth, Address
+from .models import Message, PackageAd, CourierAd, countries, Profile, KYCAuth, Address, get_courier_full_name, get_package_full_name
 from django.contrib.auth.models import User
 
 
@@ -47,6 +47,103 @@ def get_full_name(request):
 		return "<p>Welcome <strong>%s %s</strong></p>" % (p.name_f, p.name_l)
 
 
+def get_deals(profile):
+	if profile.role == 0:
+		packs = PackageAd.objects.filter(sender=profile)
+		ads = []
+		in_progress = []
+		complete = []
+		for pack in packs:
+			if pack.status < 2:
+				ads.append(pack)
+			elif pack.status < 6 or pack.courier.status == 9:
+				in_progress.append(pack)
+			else:
+				complete.append(pack)
+	else:
+		courierAds = CourierAd.objects.filter(package=profile)
+		ads = []
+		in_progress = []
+		complete = []
+		for courier in courierAds:
+			if courier.status < 2:
+				ads.append(courier)
+			elif courier.status < 4 or courier.status == 9:
+				in_progress.append(courier)
+			else:
+				complete.append(courier)
+	return profile.role == 0, {"ads": ads, "deals_current": in_progress, "deals_completed": complete}
+
+
+def dashboard(request):
+	user = Profile.objects.get(user=request.user)
+	role, con = get_deals(user)
+	con["u"] = get_full_name(request)
+	if role:
+		return render(request, "mvp/templates/dashboard_sender.html", con)
+	else:
+		return render(request, "mvp/templates/dashboard_courier.html", con)
+
+
+# Both ad functions
+def get_owner_controls(request, ad, courier):
+	if courier:
+		if test_kyc(request):
+			if ad.courier == Profile.objects.get(user=request.user):
+				controls = []
+				if ad.status < 4:
+					controls.append({"name": "Cancel", "url": "/mvp/couriers/cancel/%s" % ad.id})
+				if ad.status == 1:
+					controls.append({"name": "Revert", "url": "/mvp/couriers/revert/%s" % ad.id})
+					controls.append({"name": "Accept Deal", "url": "/mvp/couriers/accept/%s" % ad.id})
+				elif 4 > ad.status > 1:
+					nex = ad.status_code[ad.status + 1][1]
+					controls.append({"name": "Mark status as %s" % nex, "url": "/mvp/couriers/next/%s" % ad.id})
+				return controls
+	else:
+		if test_kyc(request):
+			if ad.sender == Profile.objects.get(user=request.user):
+				controls = []
+				if ad.status < 6:
+					controls.append({"name": "Cancel", "url": "/mvp/packages/cancel/%s" % ad.id})
+				if ad.status == 1:
+					controls.append({"name": "Revert", "url": "/mvp/packages/revert/%s" % ad.id})
+					controls.append({"name": "Accept Deal", "url": "/mvp/packages/accept/%s" % ad.id})
+				elif 6 > ad.status > 1:
+					nex = ad.status_code[ad.status + 1][1]
+					controls.append({"name": "Mark status as %s" % nex, "url": "/mvp/packages/next/%s" % ad.id})
+				return controls
+	return None
+
+
+def get_messages(request, ad, courier):
+	if not test_kyc(request):
+		return None
+	mess = Message.objects.filter(regarding_uuid=ad.id, visible=True)
+	if courier:
+		if ad.status > 0:
+			mess = mess.filter(regarding_code=1)
+			if ad.package.sender != Profile.objects.get(user=request.user) and ad.courier != Profile.objects.get(user=request.user):
+				return None
+	else:
+		mess = mess.filter(regarding_code=0)
+		if ad.status > 0:
+			if ad.sender != Profile.objects.get(user=request.user) and ad.courier.courier != Profile.objects.get(user=request.user):
+				return None
+	messages = []
+	for m in mess:
+		messages.append({"name": "%s %s" % (m.sender.name_f.upper(), m.sender.name_l.upper()), "time": m.time, "text": m.text})
+		if m.img is not None:
+			messages[-1]["image"] = m.img
+	return messages
+
+
+class MessageForm(forms.ModelForm):
+	class Meta:
+		model = Message
+		fields = ["img", "text"]
+
+
 # Courier
 class CourierFilter(forms.Form):
 	weight = forms.FloatField(label="Minimum Weight (lb): ")
@@ -75,6 +172,37 @@ class CourierAdCreate(forms.ModelForm):
 		exclude = ["id", "courier", "status"]
 
 
+def courier_ad(request, id):
+	ad = CourierAd.objects.get(id=id)
+	btn = "Send message to start a deal" if ad.status == 0 else "Send"
+	context = {"name": "%s %s" % (ad.courier.name_f, ad.courier.name_l), "ad": ad, "messages": get_messages(request, ad, True),
+			   "owner_links": get_owner_controls(request, ad, True), "u": get_full_name(request), "btn": btn}
+	if request.method == "POST":
+		form = MessageForm(request.POST)
+		if form.is_valid():
+			form = form.save(commit=False)
+			form.sender = Profile.objects.get(user=request.user)
+			form.regarding_uuid = ad.id
+			form.regarding_code = 1
+			form.save()
+			if ad.status == 0:
+				package = PackageAd.objects.get(id=form.cleaned_data["package"])
+				ad.package = package
+				package.courier = ad
+				package.status = 9
+				ad.status = 1
+				ad.save()
+				package.save()
+			redirect(request.path_info)
+	else:
+		form = MessageForm()
+		if ad.status == 0:
+			packages = PackageAd.objects.filter(sender=Profile.objects.get(user=request.user), status=0)
+			form.fields['package'] = forms.ChoiceField(choices=[(p.id, p.receiver_address.address) for p in packages], label="Choose package: ")
+	context["form"] = form
+	return render(request, "mvp/templates/ad-courier.html", context)
+
+
 def courier_create(request):
 	if not test_kyc(request):
 		return redirect("/mvp/")
@@ -86,7 +214,44 @@ def courier_create(request):
 			form.save()
 	else:
 		form = CourierAdCreate()
-	return render(request, "mvp/templates/embed-form.html", {"name": "New Courier Ad", "forms": [("", form)]})
+	return render(request, "mvp/templates/embed-form.html", {"name": "New Courier Ad", "forms": [("", form)], "u": get_full_name(request)})
+
+
+def courier_next(request, id):
+	courier = CourierAd.objects.get(id=id)
+	if courier.courier == Profile.objects.get(user=request.user) and courier.status < 7:
+		courier.status += 1
+		courier.save()
+	return redirect("/mvp/couriers/%s/" % courier.id)
+
+
+def courier_cancel(request, id):
+	courier = CourierAd.objects.get(id=id)
+	if courier.courier == Profile.objects.get(user=request.user) and courier.status < 6:
+		courier.status = 7
+		courier.save()
+	return redirect("/mvp/couriers/%s/" % courier.id)
+
+
+def courier_accept(request, id):
+	courier = CourierAd.objects.get(id=id)
+	if courier.courier == Profile.objects.get(user=request.user) and courier.status == 1:
+		courier.status = 2
+		courier.save()
+	return redirect("/mvp/couriers/%s/" % courier.id)
+
+
+def courier_revert(request, id):
+	courier = CourierAd.objects.get(id=id)
+	if courier.courier == Profile.objects.get(user=request.user) and courier.status == 1:
+		courier.package = None
+		courier.status = 0
+		courier.save()
+	mess = Message.objects.filter(regarding_uuid=courier.id, visible=True, regarding_code=1)
+	for m in mess:
+		m.visible = False
+		m.save()
+	return redirect("/mvp/couriers/%s/" % courier.id)
 
 
 # Packages
@@ -95,6 +260,37 @@ class PackageFilter(forms.Form):
 	price_min = forms.FloatField(label="Minimum Price (USD): ")
 	depart_country = forms.ChoiceField(choices=countries, label="From: ")
 	receive_country = forms.ChoiceField(choices=countries, label="To: ")
+
+
+def package_ad(request, id):
+	ad = PackageAd.objects.get(id=id)
+	btn = "Send message to start a deal" if ad.status == 0 else "Send"
+	context = {"name": "%s %s" % (ad.sender.name_f, ad.sender.name_l), "ad": ad, "messages": get_messages(request, ad, False),
+			   "owner_links": get_owner_controls(request, ad, False), "u": get_full_name(request), "btn": btn}
+	if request.method == "POST":
+		form = MessageForm(request.POST)
+		if form.is_valid():
+			form = form.save(commit=False)
+			form.sender = Profile.objects.get(user=request.user)
+			form.regarding_uuid = ad.id
+			form.regarding_code = 0
+			form.save()
+			if ad.status == 0:
+				courier = CourierAd.objects.get(id=form.cleaned_data["courier"])
+				ad.courier = courier
+				courier.package = ad
+				courier.status = 9
+				ad.status = 1
+				ad.save()
+				courier.save()
+			redirect(request.path_info)
+	else:
+		form = MessageForm()
+		if ad.status == 0:
+			couriers = CourierAd.objects.filter(courier=Profile.objects.get(user=request.user), status=0)
+			form.fields['courier'] = forms.ChoiceField(choices=[(c.id, "%s to %s" % (c.dep_airport, c.dest_airport)) for c in couriers], label="Choose package: ")
+	context["form"] = form
+	return render(request, "mvp/templates/ad-package.html", context)
 
 
 def package_ads(request):
@@ -121,7 +317,7 @@ def package_create(request):
 	if not test_kyc(request):
 		return redirect("/mvp/")
 	if request.method == "POST":
-		form = CourierAdCreate(request.POST)
+		form = PackageAdCreate(request.POST, request.FILES)
 		addy1 = AddressForm(request.POST)
 		addy2 = AddressForm2(request.POST)
 		if form.is_valid() and addy1.is_valid() and addy2.is_valid():
@@ -130,11 +326,49 @@ def package_create(request):
 			form.receiver_address = addy2.save()
 			form.sender = Profile.objects.get(user=request.user)
 			form.save()
+			return redirect("/mvp/")
 	else:
-		form = CourierAdCreate()
+		form = PackageAdCreate()
 		addy1 = AddressForm()
 		addy2 = AddressForm2()
-	return render(request, "mvp/templates/embed-form.html", {"name": "New Package Ad", "forms": [("", form), ("Receiver address", addy2), ("Pickup address", addy1)]})
+	return render(request, "mvp/templates/embed-form.html", {"name": "New Package Ad", "forms": [("", form), ("Drop off address", addy2), ("Pickup address", addy1)], "u": get_full_name(request)})
+
+
+def package_next(request, id):
+	pack = PackageAd.objects.get(id=id)
+	if pack.sender == Profile.objects.get(user=request.user) and pack.status < 7:
+		pack.status += 1
+		pack.save()
+	return redirect("/mvp/packages/%s/" % pack.id)
+
+
+def package_cancel(request, id):
+	pack = PackageAd.objects.get(id=id)
+	if pack.sender == Profile.objects.get(user=request.user) and pack.status < 4:
+		pack.status = 7
+		pack.save()
+	return redirect("/mvp/packages/%s/" % pack.id)
+
+
+def package_accept(request, id):
+	pack = PackageAd.objects.get(id=id)
+	if pack.sender == Profile.objects.get(user=request.user) and pack.status == 1:
+		pack.status = 2
+		pack.save()
+	return redirect("/mvp/packages/%s/" % pack.id)
+
+
+def package_revert(request, id):
+	pack = PackageAd.objects.get(id=id)
+	if pack.sender == Profile.objects.get(user=request.user) and pack.status == 1:
+		pack.courier = None
+		pack.status = 0
+		pack.save()
+	mess = Message.objects.filter(regarding_uuid=pack.id, visible=True, regarding_code=1)
+	for m in mess:
+		m.visible = False
+		m.save()
+	return redirect("/mvp/packages/%s/" % pack.id)
 
 
 # User Management
@@ -265,6 +499,15 @@ def create_user(request):
 	return redirect("/mvp/")
 
 
+def profile(request, id):
+	prof = Profile.objects.get(id=id)
+	return render(request, "mvp/templates/profile.html", {"pname": "%s %s" % (prof.name_f.upper(), prof.name_l.upper()), "role": prof.get_role_display(), "profile": prof, "edit": prof==Profile.objects.get(user=request.user), "u": get_full_name(request)})
+
+
+def current_profile(request):
+	return redirect("/mvp/user/%s" % Profile.objects.get(user=request.user).id)
+
+
 def edit_profile(request):
 	if not test_kyc(request):
 		return redirect("/mvp/")
@@ -280,4 +523,37 @@ def edit_profile(request):
 	else:
 		form1 = ProfileForm(instance=user)
 		form2 = AddressForm(instance=user.address)
-	return render(request, "mvp/templates/embed-form.html", {"name": "Edit Profile", "forms": [("", form1), ("Edit address", form2)]})
+	return render(request, "mvp/templates/embed-form.html", {"name": "Edit Profile", "forms": [("", form1), ("Edit address", form2)], "u": get_full_name(request)})
+
+
+def user_ads(request):
+	if Profile.objects.get(user=request.user).role == 0:
+		return redirect("/mvp/couriers")
+	else:
+		return redirect("/mvp/packages")
+
+
+class RatingForm(forms.Form):
+	rating = forms.IntegerField(label="Rating (x/10): ", max_value=10, min_value=0)
+
+
+def rate_user(request, uid, cat, adid):
+	prof = Profile.objects.get(id=uid)
+	if request.method == "POST":
+		form = RatingForm(request.POST)
+		if form.is_valid():
+			prof.rating = (form.cleaned_data["rating"] + (prof.rating * prof.num_of_ratings))/(prof.num_of_ratings + 1)
+			prof.num_of_ratings += 1
+			if cat == 1:
+				ad = CourierAd.objects.get(id=adid)
+			else:
+				ad = PackageAd.objects.get(id=adid)
+			if ad.status == 8:
+				return redirect("/mvp/")
+			ad.status = 8
+			ad.save()
+			prof.save()
+			return redirect("/mvp/")
+	else:
+		form = RatingForm()
+	return render(request, "mvp/templates/embed-form.html", {"name": "Rate %s" % prof.name_f, "forms": [("", form)], "u": get_full_name(request)})

@@ -1,0 +1,49 @@
+{% extends "mvp/templates/base.html" %}
+{% load myfilters %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0 text-center">
+                        <h6 class="display-6">{{ pname }}</h6>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-0">
+                            <table class="table align-items-center mb-0 text-xxl-center" width="100%">
+                                <tbody>
+                                <tr>
+                                    <td>
+                                        <img src="{{ profile.profile.url }}" width="50%">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="font-weight-bold mb-0">{{ role }}</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="font-weight-bold mb-0">{{ profile.rating }}/10</p>
+                                        <p class="text-secondary mb-0">{{ profile.num_of_ratings }} ratings</p>
+                                    </td>
+                                </tr>
+                                {% if edit %}
+                                <tr>
+                                    <td>
+                                        <a class="btn bg-gradient-primary btn-sm" href="/mvp/user/edit/">Edit</a>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

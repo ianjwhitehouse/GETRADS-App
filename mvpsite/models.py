@@ -32,14 +32,15 @@ class Address(models.Model):
 class Profile(models.Model):
 	id = models.UUIDField(default=uuid.uuid4, editable=False)
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, primary_key=True)
-	profile = models.ImageField(verbose_name="Profile Picture: ")
+	profile = models.ImageField(verbose_name="Profile Picture: ", blank=True)
 	name_f = models.CharField(max_length=32, verbose_name="First Name: ")
 	name_l = models.CharField(max_length=32, verbose_name="Last Name: ")
 	role_choices = [(0, "Sender"), (1, "Courier")]
 	role = models.SmallIntegerField(choices=role_choices, verbose_name="Role: ")
 	address = models.ForeignKey(Address, related_name="%(class)s_address", on_delete=models.PROTECT, verbose_name="Home Address: ")
 	phone_number = models.CharField(max_length=32, validators=[phone_regex], verbose_name="Cell Phone Number: ")
-	rating = models.FloatField(default=0)
+	rating = models.FloatField(default=5)
+	num_of_ratings = models.IntegerField(default=0)
 	referer = models.CharField(max_length=10, verbose_name="Referral Code: ", blank=True)
 	referee = models.CharField(max_length=10, default=create_ref)
 
@@ -92,7 +93,7 @@ class CourierAd(models.Model):
 	package_price_min = models.FloatField(verbose_name="Price (USD): ")
 	# package_price_cur = models.CharField(max_length=3, verbose_name="3-digit currency code: ")
 
-	dest_airport = models.CharField(max_length=3, verbose_name="Departure airport (3-letter code): ")
+	dep_airport = models.CharField(max_length=3, verbose_name="Departure airport (3-letter code): ")
 	dep_country = models.CharField(choices=countries, max_length=2, verbose_name="Departure country: ")
 	dep_date = models.DateField(verbose_name="Date of departure: ")
 
@@ -101,8 +102,9 @@ class CourierAd(models.Model):
 	dest_date = models.DateField(verbose_name="Date of arrival: ")
 
 	status_code = [(0, "Still accepting offers"), (1, "A deal is in progress"), (2, "A deal is completed"),
-				   (3, "The courier has departed"), (4, "The courier has arrived"), (5, "Cancelled")]
+				   (3, "The courier has departed"), (4, "The courier has arrived"), (7, "Cancelled"), (8, "Rated"), (9, "Attached")]
 	status = models.SmallIntegerField(choices=status_code, default=0)
+	package = models.ForeignKey("PackageAd", related_name="%(class)s_package", on_delete=models.PROTECT, null=True)
 
 
 @admin.display(description="Courier Full Name")
@@ -130,19 +132,19 @@ class PackageAd(models.Model):
 
 	transport_modes = [(0, "In Person"), (1, "Delivery Service")]
 
-	sender_mode = models.SmallIntegerField(choices=transport_modes, verbose_name="Pickup mode: ")
+	# sender_mode = models.SmallIntegerField(choices=transport_modes, verbose_name="Pickup mode: ")
 	sender_address = models.ForeignKey(Address, related_name="%(class)s_send_a", on_delete=models.PROTECT,)
 	sender = models.ForeignKey(Profile, related_name="%(class)s_sender", on_delete=models.PROTECT)
 
-	receiver_mode = models.SmallIntegerField(choices=transport_modes, verbose_name="Drop-off mode: ")
-	receiver_number = models.CharField(max_length=32, validators=[phone_regex], verbose_name="Receiver's phone number: ")
+	# receiver_mode = models.SmallIntegerField(choices=transport_modes, verbose_name="Drop-off mode: ")
+	# receiver_number = models.CharField(max_length=32, validators=[phone_regex], verbose_name="Phone number for pickup: ")
 	receiver_address = models.ForeignKey(Address, related_name="%(class)s_receive_a", on_delete=models.PROTECT)
 
 	status_code = [(0, "Still accepting offers"), (1, "A deal is in progress"), (2, "A deal is completed"),
 				   (3, "The package has been dropped off"), (4, "The package is with the courier"),
-				   (5, "The courier has delivered the package"), (6, "The package has been received"), (7, "Cancelled")]
+				   (5, "The courier has delivered the package"), (6, "The package has been received"), (7, "Cancelled"), (8, "Rated"), (9, "Attached")]
 	status = models.SmallIntegerField(choices=status_code, default=0)
-	courier = models.ForeignKey(CourierAd, related_name="%(class)s_courier", on_delete=models.PROTECT, blank=True)
+	courier = models.ForeignKey(CourierAd, related_name="%(class)s_courier", on_delete=models.PROTECT, null=True)
 
 
 @admin.display(description="Sender Full Name")
@@ -156,18 +158,13 @@ class PackageAdmin(admin.ModelAdmin):
 
 class Message(models.Model):
 	sender = models.ForeignKey(Profile, related_name="%(class)s_sender", on_delete=models.PROTECT)
-	receiver = models.ForeignKey(Profile, related_name="%(class)s_receive", on_delete=models.PROTECT)
-	text = models.TextField()
-	regarding_code = models.SmallIntegerField(choices=[(1, "Courier Ad"), (2, "Package Ad"), (3, "Other")])
+	img = models.ImageField(verbose_name="Attach an image: ", blank=True)
+	text = models.TextField(verbose_name="Message body: ")
+	regarding_code = models.SmallIntegerField(choices=[(1, "Courier Ad"), (2, "Package Ad")])
 	regarding_uuid = models.UUIDField()
 	time = models.DateTimeField(auto_now=True)
-	seen = models.BooleanField()
-
-
-@admin.display(description="Receiver Full Name")
-def get_message_receiver_full_name(obj):
-	return "%s %s" % (obj.receiver.name_f.upper(), obj.receiver.name_l.upper())
+	visible = models.BooleanField(default=True)
 
 
 class MessageAdmin(admin.ModelAdmin):
-	list_display = (get_package_full_name, get_message_receiver_full_name, "time")
+	list_display = (get_package_full_name, "time")
