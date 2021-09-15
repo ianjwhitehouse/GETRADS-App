@@ -56,19 +56,19 @@ def get_deals(profile):
 		for pack in packs:
 			if pack.status < 2:
 				ads.append(pack)
-			elif pack.status < 6 or pack.courier.status == 9:
+			elif pack.status < 6 or (pack.status == 9 and pack.courier.status != 8):
 				in_progress.append(pack)
 			else:
 				complete.append(pack)
 	else:
-		courierAds = CourierAd.objects.filter(package=profile)
+		courierAds = CourierAd.objects.filter(courier=profile)
 		ads = []
 		in_progress = []
 		complete = []
 		for courier in courierAds:
 			if courier.status < 2:
 				ads.append(courier)
-			elif courier.status < 4 or courier.status == 9:
+			elif courier.status < 4 or (courier.status == 9 and courier.package.status != 8):
 				in_progress.append(courier)
 			else:
 				complete.append(courier)
@@ -123,13 +123,23 @@ def get_messages(request, ad, courier):
 	if courier:
 		if ad.status > 0:
 			mess = mess.filter(regarding_code=1)
-			if ad.package.sender != Profile.objects.get(user=request.user) and ad.courier != Profile.objects.get(user=request.user):
+			if ad.package is None:
 				return None
+			elif ad.package.sender != Profile.objects.get(user=request.user) and ad.courier != Profile.objects.get(user=request.user):
+				return None
+		elif ad.status == 0 and ad.courier == Profile.objects.get(user=request.user):
+			return None
+
 	else:
 		mess = mess.filter(regarding_code=0)
 		if ad.status > 0:
-			if ad.sender != Profile.objects.get(user=request.user) and ad.courier.courier != Profile.objects.get(user=request.user):
+			if ad.courier is None:
 				return None
+			elif ad.sender != Profile.objects.get(user=request.user) and ad.courier.courier != Profile.objects.get(user=request.user):
+				return None
+		elif ad.status == 0 and ad.sender == Profile.objects.get(user=request.user):
+			return None
+
 	messages = []
 	for m in mess:
 		messages.append({"name": "%s %s" % (m.sender.name_f.upper(), m.sender.name_l.upper()), "time": m.time, "text": m.text})
@@ -169,7 +179,7 @@ def courier_ads(request):
 class CourierAdCreate(forms.ModelForm):
 	class Meta:
 		model = CourierAd
-		exclude = ["id", "courier", "status"]
+		exclude = ["id", "courier", "status", "package"]
 
 
 def courier_ad(request, id):
@@ -178,7 +188,7 @@ def courier_ad(request, id):
 	context = {"name": "%s %s" % (ad.courier.name_f, ad.courier.name_l), "ad": ad, "messages": get_messages(request, ad, True),
 			   "owner_links": get_owner_controls(request, ad, True), "u": get_full_name(request), "btn": btn}
 	if request.method == "POST":
-		form = MessageForm(request.POST)
+		form = MessageForm(request.POST, request.FILES)
 		if form.is_valid():
 			form = form.save(commit=False)
 			form.sender = Profile.objects.get(user=request.user)
@@ -186,20 +196,21 @@ def courier_ad(request, id):
 			form.regarding_code = 1
 			form.save()
 			if ad.status == 0:
-				package = PackageAd.objects.get(id=form.cleaned_data["package"])
+				package = PackageAd.objects.get(id=request.POST["package"])
 				ad.package = package
 				package.courier = ad
 				package.status = 9
 				ad.status = 1
 				ad.save()
 				package.save()
-			redirect(request.path_info)
+			return redirect(request.path_info)
 	else:
 		form = MessageForm()
 		if ad.status == 0:
 			packages = PackageAd.objects.filter(sender=Profile.objects.get(user=request.user), status=0)
 			form.fields['package'] = forms.ChoiceField(choices=[(p.id, p.receiver_address.address) for p in packages], label="Choose package: ")
 	context["form"] = form
+	context["message_on"] = context["messages"] is not None
 	return render(request, "mvp/templates/ad-courier.html", context)
 
 
@@ -210,8 +221,9 @@ def courier_create(request):
 		form = CourierAdCreate(request.POST)
 		if form.is_valid():
 			form = form.save(commit=False)
-			form.user = Profile.objects.get(user=request.user)
+			form.courier = Profile.objects.get(user=request.user)
 			form.save()
+			redirect("/mvp/")
 	else:
 		form = CourierAdCreate()
 	return render(request, "mvp/templates/embed-form.html", {"name": "New Courier Ad", "forms": [("", form)], "u": get_full_name(request)})
@@ -222,7 +234,7 @@ def courier_next(request, id):
 	if courier.courier == Profile.objects.get(user=request.user) and courier.status < 7:
 		courier.status += 1
 		courier.save()
-	return redirect("/mvp/couriers/%s/" % courier.id)
+	return redirect("/mvp/couriers/%s" % courier.id)
 
 
 def courier_cancel(request, id):
@@ -230,7 +242,7 @@ def courier_cancel(request, id):
 	if courier.courier == Profile.objects.get(user=request.user) and courier.status < 6:
 		courier.status = 7
 		courier.save()
-	return redirect("/mvp/couriers/%s/" % courier.id)
+	return redirect("/mvp/couriers/%s" % courier.id)
 
 
 def courier_accept(request, id):
@@ -238,7 +250,7 @@ def courier_accept(request, id):
 	if courier.courier == Profile.objects.get(user=request.user) and courier.status == 1:
 		courier.status = 2
 		courier.save()
-	return redirect("/mvp/couriers/%s/" % courier.id)
+	return redirect("/mvp/couriers/%s" % courier.id)
 
 
 def courier_revert(request, id):
@@ -251,7 +263,7 @@ def courier_revert(request, id):
 	for m in mess:
 		m.visible = False
 		m.save()
-	return redirect("/mvp/couriers/%s/" % courier.id)
+	return redirect("/mvp/couriers/%s" % courier.id)
 
 
 # Packages
@@ -268,7 +280,7 @@ def package_ad(request, id):
 	context = {"name": "%s %s" % (ad.sender.name_f, ad.sender.name_l), "ad": ad, "messages": get_messages(request, ad, False),
 			   "owner_links": get_owner_controls(request, ad, False), "u": get_full_name(request), "btn": btn}
 	if request.method == "POST":
-		form = MessageForm(request.POST)
+		form = MessageForm(request.POST, request.FILES)
 		if form.is_valid():
 			form = form.save(commit=False)
 			form.sender = Profile.objects.get(user=request.user)
@@ -276,20 +288,21 @@ def package_ad(request, id):
 			form.regarding_code = 0
 			form.save()
 			if ad.status == 0:
-				courier = CourierAd.objects.get(id=form.cleaned_data["courier"])
+				courier = CourierAd.objects.get(id=request.POST["courier"])
 				ad.courier = courier
 				courier.package = ad
 				courier.status = 9
 				ad.status = 1
 				ad.save()
 				courier.save()
-			redirect(request.path_info)
+			return redirect(request.path_info)
 	else:
 		form = MessageForm()
 		if ad.status == 0:
 			couriers = CourierAd.objects.filter(courier=Profile.objects.get(user=request.user), status=0)
 			form.fields['courier'] = forms.ChoiceField(choices=[(c.id, "%s to %s" % (c.dep_airport, c.dest_airport)) for c in couriers], label="Choose package: ")
 	context["form"] = form
+	context["message_on"] = context["messages"] is not None
 	return render(request, "mvp/templates/ad-package.html", context)
 
 
@@ -339,7 +352,7 @@ def package_next(request, id):
 	if pack.sender == Profile.objects.get(user=request.user) and pack.status < 7:
 		pack.status += 1
 		pack.save()
-	return redirect("/mvp/packages/%s/" % pack.id)
+	return redirect("/mvp/packages/%s" % pack.id)
 
 
 def package_cancel(request, id):
@@ -347,7 +360,7 @@ def package_cancel(request, id):
 	if pack.sender == Profile.objects.get(user=request.user) and pack.status < 4:
 		pack.status = 7
 		pack.save()
-	return redirect("/mvp/packages/%s/" % pack.id)
+	return redirect("/mvp/packages/%s" % pack.id)
 
 
 def package_accept(request, id):
@@ -355,7 +368,7 @@ def package_accept(request, id):
 	if pack.sender == Profile.objects.get(user=request.user) and pack.status == 1:
 		pack.status = 2
 		pack.save()
-	return redirect("/mvp/packages/%s/" % pack.id)
+	return redirect("/mvp/packages/%s" % pack.id)
 
 
 def package_revert(request, id):
@@ -368,7 +381,7 @@ def package_revert(request, id):
 	for m in mess:
 		m.visible = False
 		m.save()
-	return redirect("/mvp/packages/%s/" % pack.id)
+	return redirect("/mvp/packages/%s" % pack.id)
 
 
 # User Management

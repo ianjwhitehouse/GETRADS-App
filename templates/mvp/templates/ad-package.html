@@ -19,11 +19,11 @@
                                 <tbody>
                                 <tr>
                                     <td width="50%" colspan="2">
-                                        <img src="{{ ad.package_image.url }}" width="100%">
+                                        <img src="{{ ad.package_image.url }}" width="90%">
                                     </td>
                                     <td class="align-text-top" width="50%" colspan="2">
-                                        <p class="text-md-center font-weight-bolder mb-2 ">Description</p>
-                                        <p class="text-md font-weight-bolder mb-2 ">{{ ad.desc }}</p>
+                                        <p class="text-md-center font-weight-bolder mb-2" width="90%">Description</p>
+                                        <p class="text-md mb-2" width="90%">{{ ad.desc }}</p>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -63,7 +63,7 @@
                                         Dimensions
                                     </th>
                                     <th class="text-uppercase text-secondary text-md-center font-weight-bolder opacity-7 ps-2">
-                                        Maximum Price
+                                        Price
                                     </th>
                                 </tr>
                                 </thead>
@@ -90,7 +90,7 @@
                         </div>
                     </div>
                 </div>
-                {% if messages %}
+                {% if message_on %}
                 <div class="card mb-4">
                     <div class="card-header pb-0">
                         <h6>Message</h6>
@@ -98,18 +98,19 @@
                     <div class="card-body px-0 pt-0 pb-2">
                         <div class="table-responsive p-0">
                             <table class="table align-items-center mb-0">
-                                <thead>
-                                <thead>
+                                {% if messages %}
+                                    <thead>
                                 <tr>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" width="10%">
                                         From
                                     </th>
-                                    <th class="text-uppercase text-secondary text-md font-weight-bolder opacity-7 ps-2">
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" width="10%">
                                         Time
                                     </th>
-                                    <th></th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Message
+                                    </th>
                                 </tr>
-                                </thead>
                                 </thead>
                                 <tbody>
                                 {% for m in messages %}
@@ -122,12 +123,21 @@
                                         </td>
                                         <td>
                                             {% if m.image %}
-                                                <img src="{{ m.image.url }}" width="80%">
+                                                <img src="{{ m.image.url }}" width="25%">
+                                                <p></p>
                                             {% endif %}
-                                            <a class="text-xs font-weight-bold mb-0">{{ m.text }}</a>
+                                            <p class="text-xs font-weight-bold mb-0">{{ m.text }}</p>
                                         </td>
                                     </tr>
                                 {% endfor %}
+                                {% else %}
+                                <tbody>
+                                  <tr>
+                                    <td class="text-center">
+                                            <p class="text-lg font-weight-bolder mb-0">No Messages</p>
+                                    </td>
+                                  </tr>
+                                {% endif %}
                                 </tbody>
                             </table>
                         </div>
@@ -169,10 +179,9 @@
                             <table class="table align-items-center mb-0">
                                 <tbody>
                                 <tr>
-                                    {% for d in owner_links %}
-                                        <td>
-                                            <a class="text-xs font-weight-bold mb-0"
-                                               href="{{ owner_links.url }}">{{ owner_links.title }}</a>
+                                    {% for link in owner_links %}
+                                        <td class="text-center">
+                                            <a class="btn bg-gradient-primary btn-lg" href="{{ link.url }}">{{ link.name }}</a>
                                         </td>
                                     {% endfor %}
                                 </tr>

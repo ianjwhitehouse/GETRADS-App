@@ -26,7 +26,7 @@
                                         To
                                     </th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                        Minimum Price
+                                        Price
                                     </th>
                                     <th class="text-center"><a class="btn bg-gradient-primary btn-sm" href="/mvp/couriers/new/">Create Ad</a></th>
                                 </tr>
@@ -35,20 +35,20 @@
                                 {% for ad in ads %}
                                     <tr>
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ ad.package_weight }}</p>
-                                            <p class="text-xs text-secondary mb-0">Pounds</p>
+                                            <p class="text-sm font-weight-bold mb-0">{{ ad.package_weight }}</p>
+                                            <p class="text-sm text-secondary mb-0">Pounds</p>
                                         </td>
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ ad.dep_airport }}, {{ ad.dep_country }}</p>
-                                            <p class="text-xs text-secondary mb-0">{{ ad.dep_date }}</p>
+                                            <p class="text-sm font-weight-bold mb-0">{{ ad.dep_airport }}, {{ ad.get_dep_country_display }}</p>
+                                            <p class="text-sm text-secondary mb-0">{{ ad.dep_date }}</p>
                                         </td>
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ ad.dest_airport }}, {{ ad.dest_country }}</p>
-                                            <p class="text-xs text-secondary mb-0">{{ ad.dest_date }}</p>
+                                            <p class="text-sm font-weight-bold mb-0">{{ ad.dest_airport }}, {{ ad.get_dest_country_display }}</p>
+                                            <p class="text-sm text-secondary mb-0">{{ ad.dest_date }}</p>
                                         </td>
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0">${{ ad.package_price_min }}</p>
-                                            <p class="text-xs text-secondary mb-0">USD</p>
+                                            <p class="text-sm font-weight-bold mb-0">${{ ad.package_price_min }}</p>
+                                            <p class="text-sm text-secondary mb-0">USD</p>
                                         </td>
                                         <td class="text-center">
                                             <a class="btn bg-gradient-primary btn-sm" href="/mvp/couriers/{{ ad.id }}">Open</a>
@@ -90,16 +90,16 @@
                                 {% for ad in deals_current %}
                                     <tr>
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ ad.package.sender.f_name }} {{ ad.package.sender.l_name }}</p>
+                                            <p class="text-sm font-weight-bold mb-0">{{ ad.package.sender.name_f }} {{ ad.package.sender.name_l }}</p>
                                         </td>
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ ad.package.status }}</p>
+                                            <p class="text-sm font-weight-bold mb-0">{{ ad.package.status }}</p>
                                         </td>
                                         <td>
                                             <a class="btn bg-gradient-primary btn-sm" href="/mvp/packages/{{ ad.package.id }}">View Package Ad</a>
                                         </td>
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ ad.status }}</p>
+                                            <p class="text-sm font-weight-bold mb-0">{{ ad.status }}</p>
                                         </td>
                                         <td>
                                             <a class="btn bg-gradient-primary btn-sm" href="/mvp/couriers/{{ ad.id }}">View Courier Ad</a>
@@ -135,10 +135,14 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for d in deals_completed %}
+                                {% for ad in deals_completed %}
                                     <tr>
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ ad.package.sender.f_name }} {{ ad.package.sender.l_name }}</p>
+                                            {% if ad.package.sender %}
+                                            <p class="text-sm font-weight-bold mb-0">{{ ad.package.sender.name_f }} {{ ad.package.sender.name_l }}</p>
+                                            {% else %}
+                                            <p class="text-sm font-weight-bold mb-0">No User</p>
+                                            {% endif %}
                                         </td>
                                         <td>
                                             <a class="btn bg-gradient-primary btn-sm" href="/mvp/packages/{{ ad.package.id }}">View Package</a>
@@ -147,10 +151,10 @@
                                             <a class="btn bg-gradient-primary btn-sm" href="/mvp/couriers/{{ ad.id }}">View Courier</a>
                                         </td>
                                         <td>
-                                            {% if ad.package.status != 8 %}
+                                            {% if ad.package.status != 8 and ad.package.sender %}
                                                 <a class="btn bg-gradient-primary btn-sm" href="/mvp/user/rate/{{ ad.package.sender.id }}/0/{{ ad.id }}">Rate</a>
                                             {% else %}
-                                                <p class="text-xs font-weight-bold mb-0">Already Rated</p>
+                                                <p class="text-sm font-weight-bold mb-0">Already Rated</p>
                                             {% endif %}
                                         </td>
                                     </tr>

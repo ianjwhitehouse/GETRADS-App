@@ -104,7 +104,7 @@ class CourierAd(models.Model):
 	status_code = [(0, "Still accepting offers"), (1, "A deal is in progress"), (2, "A deal is completed"),
 				   (3, "The courier has departed"), (4, "The courier has arrived"), (7, "Cancelled"), (8, "Rated"), (9, "Attached")]
 	status = models.SmallIntegerField(choices=status_code, default=0)
-	package = models.ForeignKey("PackageAd", related_name="%(class)s_package", on_delete=models.PROTECT, null=True)
+	package = models.ForeignKey("PackageAd", related_name="%(class)s_package", on_delete=models.PROTECT, null=True, default=None)
 
 
 @admin.display(description="Courier Full Name")
@@ -144,7 +144,7 @@ class PackageAd(models.Model):
 				   (3, "The package has been dropped off"), (4, "The package is with the courier"),
 				   (5, "The courier has delivered the package"), (6, "The package has been received"), (7, "Cancelled"), (8, "Rated"), (9, "Attached")]
 	status = models.SmallIntegerField(choices=status_code, default=0)
-	courier = models.ForeignKey(CourierAd, related_name="%(class)s_courier", on_delete=models.PROTECT, null=True)
+	courier = models.ForeignKey(CourierAd, related_name="%(class)s_courier", on_delete=models.PROTECT, null=True, default=None)
 
 
 @admin.display(description="Sender Full Name")
@@ -159,7 +159,7 @@ class PackageAdmin(admin.ModelAdmin):
 class Message(models.Model):
 	sender = models.ForeignKey(Profile, related_name="%(class)s_sender", on_delete=models.PROTECT)
 	img = models.ImageField(verbose_name="Attach an image: ", blank=True)
-	text = models.TextField(verbose_name="Message body: ")
+	text = models.CharField(verbose_name="Message body: ", max_length=240)
 	regarding_code = models.SmallIntegerField(choices=[(1, "Courier Ad"), (2, "Package Ad")])
 	regarding_uuid = models.UUIDField()
 	time = models.DateTimeField(auto_now=True)
