@@ -9,7 +9,7 @@
             <div class="col-12">
                 <div class="card mb-4">
                     <div class="card-header pb-0">
-                        <h6>{{ name }}'s Trip</h6>
+                        <h6><a href="/mvp/user/{{ user }}">{{ name }}'s Trip</a></h6>
                         <h7>Status: {{ ad.get_status_display }}</h7>
                     </div>
                     <div class="card-body px-0 pt-0 pb-2">
@@ -144,6 +144,13 @@
                         </div>
                     </form>
                 </div>
+                {% elif no_options %}
+                    <div class="card mb-4">
+                        <div class="card-header pb-0">
+                            <h6>Before starting a deal, you must post an ad</h6>
+                            <a class="btn bg-gradient-primary btn-lg" href="/mvp/user/dash">Home</a>
+                        </div>
+                    </div>
                 {% endif %}
                 {% if owner_links %}
                 <div class="card mb-4">

@@ -24,6 +24,7 @@ urlpatterns = [
 	path('packages/new/', package_create),
 	path('packages/next/<uuid:id>', package_next),
 	path('packages/cancel/<uuid:id>', package_cancel),
+	path('packages/accept/<uuid:id>', package_accept),
 	# path('packages/search/<uuid:id>', package_cancel),
 	path('couriers/<uuid:id>', courier_ad),
 	path('couriers/', courier_ads),

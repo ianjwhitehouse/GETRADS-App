@@ -185,7 +185,7 @@ class CourierAdCreate(forms.ModelForm):
 def courier_ad(request, id):
 	ad = CourierAd.objects.get(id=id)
 	btn = "Send message to start a deal" if ad.status == 0 else "Send"
-	context = {"name": "%s %s" % (ad.courier.name_f, ad.courier.name_l), "ad": ad, "messages": get_messages(request, ad, True),
+	context = {"no_options": False, "user": ad.courier.id, "name": "%s %s" % (ad.courier.name_f, ad.courier.name_l), "ad": ad, "messages": get_messages(request, ad, True),
 			   "owner_links": get_owner_controls(request, ad, True), "u": get_full_name(request), "btn": btn}
 	if request.method == "POST":
 		form = MessageForm(request.POST, request.FILES)
@@ -209,6 +209,8 @@ def courier_ad(request, id):
 		if ad.status == 0:
 			packages = PackageAd.objects.filter(sender=Profile.objects.get(user=request.user), status=0)
 			form.fields['package'] = forms.ChoiceField(choices=[(p.id, p.receiver_address.address) for p in packages], label="Choose package: ")
+			context["no_options"] = len(form.fields['package'].choises) == 0
+
 	context["form"] = form
 	context["message_on"] = context["messages"] is not None
 	return render(request, "mvp/templates/ad-courier.html", context)
@@ -277,7 +279,7 @@ class PackageFilter(forms.Form):
 def package_ad(request, id):
 	ad = PackageAd.objects.get(id=id)
 	btn = "Send message to start a deal" if ad.status == 0 else "Send"
-	context = {"name": "%s %s" % (ad.sender.name_f, ad.sender.name_l), "ad": ad, "messages": get_messages(request, ad, False),
+	context = {"no_options": False, "user": ad.sender.id, "name": "%s %s" % (ad.sender.name_f, ad.sender.name_l), "ad": ad, "messages": get_messages(request, ad, False),
 			   "owner_links": get_owner_controls(request, ad, False), "u": get_full_name(request), "btn": btn}
 	if request.method == "POST":
 		form = MessageForm(request.POST, request.FILES)
@@ -301,6 +303,8 @@ def package_ad(request, id):
 		if ad.status == 0:
 			couriers = CourierAd.objects.filter(courier=Profile.objects.get(user=request.user), status=0)
 			form.fields['courier'] = forms.ChoiceField(choices=[(c.id, "%s to %s" % (c.dep_airport, c.dest_airport)) for c in couriers], label="Choose package: ")
+			context["no_options"] = len(form.fields['courier'].choises) == 0
+
 	context["form"] = form
 	context["message_on"] = context["messages"] is not None
 	return render(request, "mvp/templates/ad-package.html", context)

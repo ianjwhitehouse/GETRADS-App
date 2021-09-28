@@ -4,93 +4,95 @@
 {% block title %}Courier Ad{% endblock %}
 
 {% block content %}
-    <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="card mb-4">
-                    <div class="card-header pb-0">
-                        <h6>{{ name }}'s Package</h6>
-                        <h7>Status: {{ ad.get_status_display }}</h7>
-                    </div>
-                    <div class="card-body px-0 pt-0 pb-2">
-                        <div class="table-responsive p-0">
-                            <table class="table align-items-center mb-0">
-                                <thead></thead>
-                                <tbody>
-                                <tr>
-                                    <td width="50%" colspan="2">
-                                        <img src="{{ ad.package_image.url }}" width="90%">
-                                    </td>
-                                    <td class="align-text-top" width="50%" colspan="2">
-                                        <p class="text-md-center font-weight-bolder mb-2" width="90%">Description</p>
-                                        <p class="text-md mb-2" width="90%">{{ ad.desc }}</p>
-                                    </td>
-                                </tr>
-                                </tbody>
-                                <thead>
-                                <tr>
-                                    <th class="text-uppercase text-secondary text-xl-center font-weight-bolder opacity-7 ps-2" colspan="2">
-                                        From
-                                    </th>
-                                    <th class="text-uppercase text-secondary text-xl-center font-weight-bolder opacity-7 ps-2" colspan="2">
-                                        To
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td colspan="2">
-                                        <p class="text-lg-center font-weight-bolder mb-2">{{ ad.sender_address.get_country_display }}</p>
-                                        <p class="text-md-center text-secondary font-weight-bold mb-0">{{ ad.sender_address.city }}</p>
-                                        <p class="text-md-center text-secondary font-weight-bold mb-0">{{ ad.sender_address.state }}</p>
-                                    </td>
-                                    <td colspan="2">
-                                        <p class="text-lg-center font-weight-bolder mb-2">{{ ad.receiver_address.get_country_display }}</p>
-                                        <p class="text-md-center text-secondary font-weight-bold mb-0">{{ ad.receiver_address.city }}</p>
-                                        <p class="text-md-center text-secondary font-weight-bold mb-0">{{ ad.receiver_address.state }}</p>
-                                    </td>
-                                </tr>
-                                </tbody>
-                                <thead>
-                                <tr>
-                                    <th class="text-uppercase text-secondary text-md-center font-weight-bolder opacity-7 ps-2">
-                                        Type
-                                    </th>
-                                    <th class="text-uppercase text-secondary text-md-center font-weight-bolder opacity-7 ps-2">
-                                        Weight
-                                    </th>
-                                    <th class="text-uppercase text-secondary text-md-center font-weight-bolder opacity-7 ps-2">
-                                        Dimensions
-                                    </th>
-                                    <th class="text-uppercase text-secondary text-md-center font-weight-bolder opacity-7 ps-2">
-                                        Price
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr colspan="4">
-                                    <td>
-                                        <p class="text-sm-center font-weight-bolder mb-2">{{ ad.get_package_type_display }}</p>
-                                    </td>
-                                    <td>
-                                        <p class="text-sm-center font-weight-bolder mb-2">{{ ad.package_weight }}</p>
-                                        <p class="text-sm-center text-secondary font-weight-bold mb-0">Pounds</p>
-                                    </td>
-                                    <td>
-                                        <p class="text-sm-center font-weight-bolder mb-0">{{ ad.package_length }}x{{ ad.package_width }}x{{ ad.package_depth }}</p>
-                                        <p class="text-sm-center text-secondary font-weight-bold mb-0">Inches</p>
-                                    </td>
-                                    <td>
-                                        <p class="text-sm-center font-weight-bolder mb-2">${{ ad.package_price_max }}</p>
-                                        <p class="text-sm-center text-secondary font-weight-bold mb-0">USD</p>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <h6><a href="/mvp/user/{{ user }}">{{ name }}'s Package</a></h6>
+                    <h7>Status: {{ ad.get_status_display }}</h7>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="table-responsive p-0">
+                        <table class="table align-items-center mb-0">
+                            <thead></thead>
+                            <tbody>
+                            <tr>
+                                <td width="50%" colspan="2">
+                                    <img src="{{ ad.package_image.url }}" width="90%">
+                                </td>
+                                <td class="align-text-top" width="50%" colspan="2">
+                                    <p class="text-md-center font-weight-bolder mb-2" width="90%">Description</p>
+                                    <p class="text-md mb-2" width="90%">{{ ad.desc }}</p>
+                                </td>
+                            </tr>
+                            </tbody>
+                            <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xl-center font-weight-bolder opacity-7 ps-2"
+                                    colspan="2">
+                                    From
+                                </th>
+                                <th class="text-uppercase text-secondary text-xl-center font-weight-bolder opacity-7 ps-2"
+                                    colspan="2">
+                                    To
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td colspan="2">
+                                    <p class="text-lg-center font-weight-bolder mb-2">{{ ad.sender_address.get_country_display }}</p>
+                                    <p class="text-md-center text-secondary font-weight-bold mb-0">{{ ad.sender_address.city }}</p>
+                                    <p class="text-md-center text-secondary font-weight-bold mb-0">{{ ad.sender_address.state }}</p>
+                                </td>
+                                <td colspan="2">
+                                    <p class="text-lg-center font-weight-bolder mb-2">{{ ad.receiver_address.get_country_display }}</p>
+                                    <p class="text-md-center text-secondary font-weight-bold mb-0">{{ ad.receiver_address.city }}</p>
+                                    <p class="text-md-center text-secondary font-weight-bold mb-0">{{ ad.receiver_address.state }}</p>
+                                </td>
+                            </tr>
+                            </tbody>
+                            <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-md-center font-weight-bolder opacity-7 ps-2">
+                                    Type
+                                </th>
+                                <th class="text-uppercase text-secondary text-md-center font-weight-bolder opacity-7 ps-2">
+                                    Weight
+                                </th>
+                                <th class="text-uppercase text-secondary text-md-center font-weight-bolder opacity-7 ps-2">
+                                    Dimensions
+                                </th>
+                                <th class="text-uppercase text-secondary text-md-center font-weight-bolder opacity-7 ps-2">
+                                    Price
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr colspan="4">
+                                <td>
+                                    <p class="text-sm-center font-weight-bolder mb-2">{{ ad.get_package_type_display }}</p>
+                                </td>
+                                <td>
+                                    <p class="text-sm-center font-weight-bolder mb-2">{{ ad.package_weight }}</p>
+                                    <p class="text-sm-center text-secondary font-weight-bold mb-0">Pounds</p>
+                                </td>
+                                <td>
+                                    <p class="text-sm-center font-weight-bolder mb-0">{{ ad.package_length }}x{{ ad.package_width }}x{{ ad.package_depth }}</p>
+                                    <p class="text-sm-center text-secondary font-weight-bold mb-0">Inches</p>
+                                </td>
+                                <td>
+                                    <p class="text-sm-center font-weight-bolder mb-2">${{ ad.package_price_max }}</p>
+                                    <p class="text-sm-center text-secondary font-weight-bold mb-0">USD</p>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                {% if message_on %}
+            </div>
+            {% if message_on %}
                 <div class="card mb-4">
                     <div class="card-header pb-0">
                         <h6>Message</h6>
@@ -100,43 +102,45 @@
                             <table class="table align-items-center mb-0">
                                 {% if messages %}
                                     <thead>
-                                <tr>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" width="10%">
-                                        From
-                                    </th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" width="10%">
-                                        Time
-                                    </th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                        Message
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for m in messages %}
                                     <tr>
-                                        <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ m.name }}</p>
-                                        </td>
-                                        <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ m.time }}</p>
-                                        </td>
-                                        <td>
-                                            {% if m.image %}
-                                                <img src="{{ m.image.url }}" width="25%">
-                                                <p></p>
-                                            {% endif %}
-                                            <p class="text-xs font-weight-bold mb-0">{{ m.text }}</p>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
+                                            width="10%">
+                                            From
+                                        </th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"
+                                            width="10%">
+                                            Time
+                                        </th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                            Message
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for m in messages %}
+                                        <tr>
+                                            <td>
+                                                <p class="text-xs font-weight-bold mb-0">{{ m.name }}</p>
+                                            </td>
+                                            <td>
+                                                <p class="text-xs font-weight-bold mb-0">{{ m.time }}</p>
+                                            </td>
+                                            <td>
+                                                {% if m.image %}
+                                                    <img src="{{ m.image.url }}" width="25%">
+                                                    <p></p>
+                                                {% endif %}
+                                                <p class="text-xs font-weight-bold mb-0">{{ m.text }}</p>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <p class="text-lg font-weight-bolder mb-0">No Messages</p>
                                         </td>
                                     </tr>
-                                {% endfor %}
-                                {% else %}
-                                <tbody>
-                                  <tr>
-                                    <td class="text-center">
-                                            <p class="text-lg font-weight-bolder mb-0">No Messages</p>
-                                    </td>
-                                  </tr>
                                 {% endif %}
                                 </tbody>
                             </table>
@@ -168,8 +172,16 @@
                         </div>
                     </form>
                 </div>
-                {% endif %}
-                {% if owner_links %}
+            {% elif no_options %}
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>Before starting a deal, you must post an ad</h6>
+                        <a class="btn bg-gradient-primary btn-lg" href="/mvp/user/dash">Home</a>
+                    </div>
+                </div>
+            {% endif %}
+            {% endif %}
+            {% if owner_links %}
                 <div class="card mb-4">
                     <div class="card-header pb-0">
                         <h6>Edit Controls</h6>
@@ -181,7 +193,8 @@
                                 <tr>
                                     {% for link in owner_links %}
                                         <td class="text-center">
-                                            <a class="btn bg-gradient-primary btn-lg" href="{{ link.url }}">{{ link.name }}</a>
+                                            <a class="btn bg-gradient-primary btn-lg"
+                                               href="{{ link.url }}">{{ link.name }}</a>
                                         </td>
                                     {% endfor %}
                                 </tr>
@@ -191,7 +204,7 @@
                     </div>
                 </div>
             {% endif %}
-            </div>
         </div>
     </div>
+</div>
 {% endblock %}
